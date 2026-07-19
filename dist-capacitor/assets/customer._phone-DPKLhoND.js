@@ -1,0 +1,2 @@
+const __vite__mapDeps=(i,m=__vite__mapDeps,d=(m.f||(m.f=["assets/customer._phone-Be2TTvZ8.js","assets/loyalty-HdLazbsX.js","assets/link-Cbf9yJOL.js","assets/useRouter-CbOcxV0M.js","assets/routes-B12Qt1Tx.js","assets/useNavigate-CDbHJQyK.js"])))=>i.map(i=>d[i]);
+import{a as e,i as t,r as n}from"./routes-B12Qt1Tx.js";var r=e(`/customer/$phone`)({head:()=>({meta:[{title:`Customer — CD Billing`}]}),component:t(()=>n(()=>import(`./customer._phone-Be2TTvZ8.js`),__vite__mapDeps([0,1,2,3,4,5])),`component`)});export{r as t};
