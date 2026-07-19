@@ -19,5 +19,16 @@
       setTimeout(removeBadge, 1000);
       setTimeout(removeBadge, 3000);
     </script>
+    <script>
+      // Force remove Lovable badge
+      const removeBadge = () => {
+        document.querySelectorAll('#lovable-badge-root, .lovable-badge, [data-lovable-badge], a[href*="lovable.dev"]').forEach(el => el.remove());
+      };
+      const observer = new MutationObserver(() => removeBadge());
+      observer.observe(document.body, { childList: true, subtree: true });
+      window.addEventListener('load', removeBadge);
+      setTimeout(removeBadge, 1000);
+      setTimeout(removeBadge, 3000);
+    </script>
   </body>
 </html>
