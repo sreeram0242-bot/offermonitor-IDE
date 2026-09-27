@@ -58,6 +58,9 @@ export type RevenueStats = {
   totalProfit: number;
   totalBills: number;
   totalExpenses: number;
+  cashRevenue: number;
+  upiRevenue: number;
+  cardRevenue: number;
   topItems: { name: string; qty: number; revenue: number }[];
   periodExpenses: Expense[];
   freeItemsGiven: FreeItemGiven[];
@@ -91,6 +94,9 @@ export function calculateRevenue(
 
   let totalRevenue = 0;
   let totalProfit = 0;
+  let cashRevenue = 0;
+  let upiRevenue = 0;
+  let cardRevenue = 0;
   const totalBills = filteredBills.length;
   const itemMap = new Map<string, { qty: number; revenue: number }>();
   const tableMap = new Map<string, { revenue: number; billsCount: number }>();
@@ -99,6 +105,15 @@ export function calculateRevenue(
 
   for (const b of filteredBills) {
     totalRevenue += b.total;
+    if (b.paymentMethod === "UPI") {
+      upiRevenue += b.total;
+    } else if (b.paymentMethod === "Card") {
+      cardRevenue += b.total;
+    } else {
+      // Default / Cash
+      cashRevenue += b.total;
+    }
+
     if (b.gstAmount) {
       totalGstCollected += b.gstAmount;
     }
@@ -171,6 +186,9 @@ export function calculateRevenue(
     totalProfit,
     totalBills,
     totalExpenses,
+    cashRevenue,
+    upiRevenue,
+    cardRevenue,
     topItems,
     periodExpenses: filteredExpenses,
     freeItemsGiven,

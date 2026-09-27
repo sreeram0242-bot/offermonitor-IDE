@@ -71,38 +71,38 @@
   --ring: oklch(0.76 0.12 85);
 }
 
-/* Dark mode — intentionally low-contrast (barely visible) per request */
+/* Dark mode — sleek, high-contrast emerald charcoal with gold accents */
 .dark {
-  --background: oklch(0.14 0.01 160); /* near-black emerald */
-  --foreground: oklch(0.22 0.008 160); /* barely lighter than bg */
+  --background: oklch(0.14 0.02 160);
+  --foreground: oklch(0.96 0.01 90);
 
-  --card: oklch(0.16 0.01 160);
-  --card-foreground: oklch(0.22 0.008 160);
+  --card: oklch(0.18 0.025 160);
+  --card-foreground: oklch(0.96 0.01 90);
 
-  --popover: oklch(0.16 0.01 160);
-  --popover-foreground: oklch(0.22 0.008 160);
+  --popover: oklch(0.18 0.025 160);
+  --popover-foreground: oklch(0.96 0.01 90);
 
-  --primary: oklch(0.24 0.02 160);
-  --primary-foreground: oklch(0.28 0.015 160);
+  --primary: oklch(0.68 0.14 155);
+  --primary-foreground: oklch(0.12 0.03 160);
 
-  --secondary: oklch(0.17 0.008 160);
-  --secondary-foreground: oklch(0.22 0.008 160);
+  --secondary: oklch(0.23 0.03 160);
+  --secondary-foreground: oklch(0.92 0.02 90);
 
-  --muted: oklch(0.16 0.008 160);
-  --muted-foreground: oklch(0.2 0.006 160);
+  --muted: oklch(0.21 0.02 160);
+  --muted-foreground: oklch(0.68 0.03 160);
 
-  --accent: oklch(0.24 0.025 85);
-  --accent-foreground: oklch(0.28 0.015 85);
+  --accent: oklch(0.78 0.13 85);
+  --accent-foreground: oklch(0.14 0.03 160);
 
-  --destructive: oklch(0.28 0.04 27);
-  --destructive-foreground: oklch(0.22 0.008 160);
+  --destructive: oklch(0.62 0.22 27);
+  --destructive-foreground: oklch(1 0 0);
 
-  --success: oklch(0.24 0.02 160);
-  --success-foreground: oklch(0.22 0.008 160);
+  --success: oklch(0.65 0.16 155);
+  --success-foreground: oklch(1 0 0);
 
-  --border: oklch(0.18 0.008 160);
-  --input: oklch(0.17 0.008 160);
-  --ring: oklch(0.22 0.015 85);
+  --border: oklch(0.26 0.025 160);
+  --input: oklch(0.24 0.025 160);
+  --ring: oklch(0.78 0.13 85);
 }
 
 @layer base {
@@ -244,6 +244,66 @@ a[href*="lovable.dev"],
   display: none !important;
 }
 
+@utility pt-safe {
+  padding-top: env(safe-area-inset-top, 0.5rem);
+}
+
 @utility pb-safe {
   padding-bottom: env(safe-area-inset-bottom, 0.5rem);
+}
+
+@utility scrollbar-none {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+  &::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+/* --------------------------------------------------------------------------
+   Thermal Printer / Slip Print Styles (58mm & 80mm format)
+   -------------------------------------------------------------------------- */
+@media print {
+  @page {
+    margin: 0;
+    size: 80mm auto;
+  }
+
+  body {
+    background: #ffffff !important;
+    color: #000000 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  /* Hide app layout elements when printing */
+  header, nav, aside, footer, button, .no-print {
+    display: none !important;
+  }
+
+  body * {
+    visibility: hidden;
+  }
+
+  #printable-receipt,
+  #printable-receipt * {
+    visibility: visible;
+  }
+
+  #printable-receipt {
+    position: absolute;
+    left: 0;
+    top: 0;
+    width: 100%;
+    max-width: 78mm;
+    margin: 0 auto;
+    padding: 6mm 4mm;
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 12px;
+    line-height: 1.25;
+    color: #000000 !important;
+    background: #ffffff !important;
+  }
 }

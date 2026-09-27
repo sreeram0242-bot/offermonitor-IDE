@@ -1,0 +1,13 @@
+services:
+  - type: web
+    name: cd-billing-baileys
+    runtime: node
+    plan: free
+    region: singapore
+    buildCommand: cd server && npm install
+    startCommand: node server/baileys-server.mjs
+    envVars:
+      - key: PORT
+        value: 3001
+      - key: NODE_VERSION
+        value: 20

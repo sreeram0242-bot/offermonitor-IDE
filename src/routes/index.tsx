@@ -1,6 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { getCustomers, loadBills, formatDate, type CustomerSummary, useSettings, saveSettings } from "@/lib/loyalty";
+import { Receipt, Settings, Plus, Download, Upload, X, MessageSquare, ExternalLink } from "lucide-react";
 
 export const Route = createFileRoute("/")({
   component: Dashboard,
@@ -56,19 +57,21 @@ function Dashboard() {
             </p>
           )}
         </div>
-        <div className="flex items-center gap-3">
-          <Link to="/bills" className="btn-secondary">
-            📄 Recent Bills
+        <div className="flex items-center gap-2.5">
+          <Link to="/bills" className="btn-secondary py-2 px-3 text-xs md:text-sm font-semibold gap-1.5">
+            <Receipt className="h-4 w-4" />
+            <span>Recent Bills</span>
           </Link>
           <button 
             onClick={() => setIsSettingsOpen(true)}
-            className="flex h-10 w-10 items-center justify-center rounded-md border-2 border-primary/20 bg-card hover:bg-secondary transition-colors"
+            className="flex h-9 w-9 items-center justify-center rounded-md border-2 border-primary/20 bg-card hover:bg-secondary text-foreground transition-colors"
             title="Settings"
           >
-            ⚙️
+            <Settings className="h-4 w-4" />
           </button>
-          <Link to="/new-bill" className="btn-primary">
-            + New Bill
+          <Link to="/new-bill" className="btn-primary py-2 px-3 text-xs md:text-sm font-bold gap-1.5 shadow-sm">
+            <Plus className="h-4 w-4" />
+            <span>New Bill</span>
           </Link>
         </div>
       </header>
@@ -90,25 +93,84 @@ function Dashboard() {
             <div className="space-y-4">
               <div className="flex gap-3">
                 <label className="block flex-[2]">
-                  <span className="text-sm font-bold uppercase tracking-wider text-muted-foreground">Hotel Name</span>
+                  <span className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Hotel Name</span>
                   <input 
-                    className="input-field mt-1" 
+                    className="input-field mt-1 text-sm py-1.5" 
                     value={settings.hotelName}
                     onChange={e => setSettings({ ...settings, hotelName: e.target.value })}
                   />
                 </label>
                 <label className="block flex-1">
-                  <span className="text-sm font-bold uppercase tracking-wider text-muted-foreground">GST %</span>
+                  <span className="text-xs font-bold uppercase tracking-wider text-muted-foreground">GST %</span>
                   <input 
                     type="number"
                     min="0"
                     max="100"
-                    className="input-field mt-1" 
+                    className="input-field mt-1 text-sm py-1.5" 
                     value={settings.gstPercentage || ""}
                     onChange={e => setSettings({ ...settings, gstPercentage: Number(e.target.value) || 0 })}
                   />
                 </label>
               </div>
+
+              <div className="flex gap-3">
+                <label className="block flex-1">
+                  <span className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Receipt Phone</span>
+                  <input 
+                    className="input-field mt-1 text-sm py-1.5" 
+                    placeholder="9025898839"
+                    value={settings.hotelPhone || ""}
+                    onChange={e => setSettings({ ...settings, hotelPhone: e.target.value })}
+                  />
+                </label>
+                <label className="block flex-[2]">
+                  <span className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Receipt Address</span>
+                  <input 
+                    className="input-field mt-1 text-sm py-1.5" 
+                    placeholder="80 Feet Road, Karur"
+                    value={settings.hotelAddress || ""}
+                    onChange={e => setSettings({ ...settings, hotelAddress: e.target.value })}
+                  />
+                </label>
+              </div>
+
+              <label className="flex items-center justify-between cursor-pointer rounded-lg border-2 border-primary/10 bg-secondary p-3">
+                <div>
+                  <div className="font-bold text-sm">Auto-Print Thermal Receipt</div>
+                  <div className="text-xs text-muted-foreground mt-0.5">Automatically trigger print dialog when bill is saved</div>
+                </div>
+                <input 
+                  type="checkbox" 
+                  className="h-5 w-5 accent-accent"
+                  checked={!!settings.autoPrintReceipt}
+                  onChange={e => setSettings({ ...settings, autoPrintReceipt: e.target.checked })}
+                />
+              </label>
+
+              <label className="flex items-center justify-between cursor-pointer rounded-lg border-2 border-emerald-500/20 bg-emerald-500/5 p-3">
+                <div>
+                  <div className="font-bold text-sm text-foreground flex items-center gap-1.5">
+                    <MessageSquare className="h-4 w-4 text-emerald-600" />
+                    Auto-Send WhatsApp Bill in BG
+                  </div>
+                  <div className="text-xs text-muted-foreground mt-0.5">Dispatches bill automatically via Baileys gateway</div>
+                </div>
+                <input 
+                  type="checkbox" 
+                  className="h-5 w-5 accent-emerald-600"
+                  checked={!!settings.autoWhatsAppBaileys}
+                  onChange={e => setSettings({ ...settings, autoWhatsAppBaileys: e.target.checked })}
+                />
+              </label>
+
+              <Link
+                to="/settings"
+                onClick={() => setIsSettingsOpen(false)}
+                className="flex items-center justify-center gap-2 rounded-lg border border-primary/20 bg-primary/10 py-2 px-3 text-xs font-bold text-primary hover:bg-primary/20 transition-colors"
+              >
+                <span>Edit Online Bill Template & WhatsApp QR Code</span>
+                <ExternalLink className="h-3.5 w-3.5" />
+              </Link>
 
               <label className="flex items-center justify-between cursor-pointer rounded-lg border-2 border-primary/10 bg-secondary p-3">
                 <div>
@@ -199,14 +261,15 @@ function Dashboard() {
                         <li key={i} className="flex justify-between items-center text-sm bg-background p-2 rounded border border-border">
                           <span>{t}</span>
                           <button 
-                            className="text-destructive font-bold hover:underline"
+                            className="flex h-5 w-5 items-center justify-center rounded text-destructive hover:bg-destructive/10"
                             onClick={() => {
                               const nt = [...settings.tableNames];
                               nt.splice(i, 1);
                               setSettings({ ...settings, tableNames: nt });
                             }}
+                            title="Remove Table"
                           >
-                            ✕
+                            <X className="h-3.5 w-3.5" />
                           </button>
                         </li>
                       ))}
@@ -242,12 +305,14 @@ function Dashboard() {
                       a.click();
                       URL.revokeObjectURL(url);
                     }}
-                    className="btn-primary flex-1 text-xs py-2"
+                    className="btn-primary flex-1 text-xs py-2 gap-1.5"
                   >
-                    ⬇️ Export Backup
+                    <Download className="h-3.5 w-3.5" />
+                    <span>Export Backup</span>
                   </button>
-                  <label className="btn-accent flex-1 text-xs py-2 text-center cursor-pointer">
-                    ⬆️ Restore Backup
+                  <label className="btn-accent flex-1 text-xs py-2 text-center cursor-pointer flex items-center justify-center gap-1.5">
+                    <Upload className="h-3.5 w-3.5" />
+                    <span>Restore Backup</span>
                     <input 
                       type="file" 
                       accept=".json" 

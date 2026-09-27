@@ -1,0 +1,16 @@
+{
+  "name": "cd-billing-baileys-server",
+  "version": "1.0.0",
+  "description": "WhatsApp Baileys Background Invoicing Gateway for CD Billing",
+  "main": "baileys-server.mjs",
+  "type": "module",
+  "scripts": {
+    "start": "node baileys-server.mjs",
+    "dev": "node --watch baileys-server.mjs"
+  },
+  "dependencies": {
+    "@whiskeysockets/baileys": "^6.7.18",
+    "pino": "^9.6.0",
+    "qrcode": "^1.5.4"
+  }
+}

@@ -18,6 +18,7 @@ import {
   format,
 } from "date-fns";
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer } from "recharts";
+import { Banknote, QrCode, X } from "lucide-react";
 
 export const Route = createFileRoute("/revenue")({
   head: () => ({ meta: [{ title: "Revenue — CD Billing" }] }),
@@ -134,43 +135,71 @@ function RevenuePage() {
       </div>
 
       {/* Summary Cards */}
-      <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
-        <div className="card-menu p-4 md:p-6 text-center">
-          <div className="text-[10px] md:text-sm font-bold uppercase tracking-wider text-muted-foreground">
+      <div className="grid grid-cols-2 gap-2.5 sm:grid-cols-3 lg:grid-cols-6">
+        <div className="card-menu p-3 md:p-4 text-center">
+          <div className="text-[10px] md:text-xs font-bold uppercase tracking-wider text-muted-foreground">
             Total Revenue
           </div>
-          <div className="mt-1 md:mt-2 font-display text-2xl md:text-4xl text-primary">
+          <div className="mt-1 font-display text-xl md:text-2xl text-primary font-bold">
             ₹{stats.totalRevenue}
           </div>
           {stats.totalGstCollected > 0 && (
-            <div className="mt-1 text-xs text-muted-foreground font-medium">
-              (Includes ₹{stats.totalGstCollected} GST)
+            <div className="mt-0.5 text-[10px] text-muted-foreground">
+              (₹{stats.totalGstCollected} GST)
             </div>
           )}
         </div>
-        <div className="card-menu p-4 md:p-6 text-center">
-          <div className="text-[10px] md:text-sm font-bold uppercase tracking-wider text-muted-foreground">
+
+        <div className="card-menu p-3 md:p-4 text-center">
+          <div className="text-[10px] md:text-xs font-bold uppercase tracking-wider text-muted-foreground">
             Net Profit
           </div>
           <div
-            className={`mt-1 md:mt-2 font-display text-2xl md:text-4xl ${stats.totalProfit >= 0 ? "text-accent" : "text-destructive"}`}
+            className={`mt-1 font-display text-xl md:text-2xl font-bold ${
+              stats.totalProfit >= 0 ? "text-accent" : "text-destructive"
+            }`}
           >
             ₹{stats.totalProfit}
           </div>
         </div>
-        <div className="card-menu p-4 md:p-6 text-center">
-          <div className="text-[10px] md:text-sm font-bold uppercase tracking-wider text-muted-foreground">
+
+        <div className="card-menu p-3 md:p-4 text-center">
+          <div className="text-[10px] md:text-xs font-bold uppercase tracking-wider text-muted-foreground">
             Total Expenses
           </div>
-          <div className="mt-1 md:mt-2 font-display text-2xl md:text-4xl text-destructive">
+          <div className="mt-1 font-display text-xl md:text-2xl text-destructive font-bold">
             ₹{stats.totalExpenses}
           </div>
         </div>
-        <Link to="/bills" className="card-menu p-4 md:p-6 text-center block transition-colors hover:border-primary">
-          <div className="text-[10px] md:text-sm font-bold uppercase tracking-wider text-muted-foreground">
+
+        <div className="card-menu p-3 md:p-4 text-center">
+          <div className="text-[10px] md:text-xs font-bold uppercase tracking-wider text-muted-foreground flex items-center justify-center gap-1">
+            <Banknote className="h-3 w-3 text-emerald-600" />
+            <span>Cash</span>
+          </div>
+          <div className="mt-1 font-display text-xl md:text-2xl text-emerald-700 dark:text-emerald-400 font-bold">
+            ₹{stats.cashRevenue}
+          </div>
+        </div>
+
+        <div className="card-menu p-3 md:p-4 text-center">
+          <div className="text-[10px] md:text-xs font-bold uppercase tracking-wider text-muted-foreground flex items-center justify-center gap-1">
+            <QrCode className="h-3 w-3 text-accent" />
+            <span>UPI / QR</span>
+          </div>
+          <div className="mt-1 font-display text-xl md:text-2xl text-accent font-bold">
+            ₹{stats.upiRevenue}
+          </div>
+        </div>
+
+        <Link
+          to="/bills"
+          className="card-menu p-3 md:p-4 text-center block transition-colors hover:border-primary"
+        >
+          <div className="text-[10px] md:text-xs font-bold uppercase tracking-wider text-muted-foreground">
             Total Bills
           </div>
-          <div className="mt-1 md:mt-2 font-display text-2xl md:text-4xl text-primary">
+          <div className="mt-1 font-display text-xl md:text-2xl text-primary font-bold">
             {stats.totalBills}
           </div>
         </Link>
@@ -234,10 +263,10 @@ function RevenuePage() {
                       <td className="py-3 text-right">
                         <button
                           onClick={() => handleDeleteExpense(exp.id)}
-                          className="text-destructive hover:underline"
+                          className="flex h-6 w-6 items-center justify-center rounded-md text-destructive hover:bg-destructive/10"
                           title="Delete"
                         >
-                          ✕
+                          <X className="h-3.5 w-3.5" />
                         </button>
                       </td>
                     </tr>

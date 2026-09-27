@@ -11,28 +11,32 @@
     "dev": "vite dev",
     "dev:electron": "concurrently \"npm run dev\" \"wait-on http://localhost:5173 && electron .\"",
     "build": "vite build",
-    "build:exe": "npm run build && electron-builder --win",
+    "build:cap": "vite build --config vite.capacitor.config.ts",
+    "build:exe": "npm run build:cap && electron-builder --win portable nsis",
     "build:dev": "vite build --mode development",
     "preview": "vite preview",
     "lint": "eslint .",
-    "format": "prettier --write ."
+    "format": "prettier --write .",
+    "baileys:install": "cd server && npm install",
+    "baileys:server": "node server/baileys-server.mjs"
   },
   "build": {
-    "appId": "com.engineerskitchen.loyalty",
-    "productName": "CD Billing",
-    "asar": false,
+    "appId": "com.cdbilling.pos",
+    "productName": "CD BILLING",
+    "asar": true,
     "directories": {
       "output": "build-electron"
     },
-    "publish": null,
+    "win": {
+      "target": [
+        "portable",
+        "nsis"
+      ]
+    },
     "files": [
       "electron-main.js",
-      ".output/**/*",
-      "package.json",
-      "node_modules/**/*"
-    ],
-    "asarUnpack": [
-      ".output/**/*"
+      "dist-capacitor/**/*",
+      "package.json"
     ]
   },
   "dependencies": {

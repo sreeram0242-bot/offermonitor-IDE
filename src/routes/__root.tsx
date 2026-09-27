@@ -117,12 +117,24 @@ function RootShell({ children }: { children: ReactNode }) {
   );
 }
 
+import {
+  LayoutDashboard,
+  TrendingUp,
+  PlusCircle,
+  Users,
+  UtensilsCrossed,
+  Settings as SettingsIcon,
+  Sun,
+  Moon,
+} from "lucide-react";
+
 const NAV_ITEMS = [
-  { to: "/", label: "Dashboard", icon: "◐" },
-  { to: "/revenue", label: "Revenue", icon: "₹" },
-  { to: "/new-bill", label: "New Bill", icon: "＋" },
-  { to: "/customers", label: "Customers", icon: "◇" },
-  { to: "/menu", label: "Menu", icon: "☰" },
+  { to: "/", label: "Dashboard", Icon: LayoutDashboard },
+  { to: "/revenue", label: "Revenue", Icon: TrendingUp },
+  { to: "/new-bill", label: "New Bill", Icon: PlusCircle },
+  { to: "/customers", label: "Customers", Icon: Users },
+  { to: "/menu", label: "Menu", Icon: UtensilsCrossed },
+  { to: "/settings", label: "Settings", Icon: SettingsIcon },
 ] as const;
 
 function useDarkMode() {
@@ -146,38 +158,45 @@ function useDarkMode() {
 import { useSettings } from "../lib/loyalty";
 import { SplashScreen } from '@capacitor/splash-screen';
 
-function Sidebar({ onNavigate }: { onNavigate?: () => void }) {
+function Sidebar({ onNavigate, dark, toggleDark }: { onNavigate?: () => void; dark: boolean; toggleDark: () => void }) {
   const settings = useSettings();
   return (
     <aside className="flex h-full w-64 flex-col border-r border-border bg-card">
       <div className="border-b border-border px-6 py-5">
-        <div className="font-display text-xl leading-tight text-primary">{settings.hotelName}</div>
+        <div className="font-display text-xl leading-tight text-primary font-bold">{settings.hotelName}</div>
         <div className="mt-1 text-[11px] font-medium uppercase tracking-[0.15em] text-accent">
-          Loyalty Tracker
+          Billing POS
         </div>
       </div>
-      <nav className="flex-1 space-y-0.5 p-3">
+      <nav className="flex-1 space-y-1 p-3">
         {NAV_ITEMS.map((item) => (
           <Link
             key={item.to}
             to={item.to}
             onClick={onNavigate}
-            className="flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium text-foreground transition-colors hover:bg-secondary"
+            className="flex items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-semibold text-foreground transition-colors hover:bg-secondary"
             activeProps={{
               className: "bg-primary text-primary-foreground hover:bg-primary",
             }}
             activeOptions={{ exact: item.to === "/" }}
           >
-            <span className="text-base opacity-70">{item.icon}</span>
-            {item.label}
+            <item.Icon className="h-4 w-4 shrink-0 opacity-80" />
+            <span>{item.label}</span>
           </Link>
         ))}
       </nav>
-      <div className="border-t border-border px-6 py-4 text-[11px] leading-relaxed text-muted-foreground">
-        <div className="font-medium text-foreground">Contact</div>
-        <div className="mt-1">9025898839</div>
-        <div>8438260344</div>
-        <div className="mt-2">80 feet road, opp. BOB Bank, Karur</div>
+      <div className="border-t border-border p-4 flex items-center justify-between text-xs text-muted-foreground">
+        <div>
+          <div className="font-bold text-foreground">CD Billing POS</div>
+          <div className="text-[10px] text-emerald-600 font-semibold">Offline Ready</div>
+        </div>
+        <button
+          onClick={toggleDark}
+          className="flex h-8 w-8 items-center justify-center rounded-full bg-secondary border border-border text-foreground hover:bg-primary hover:text-primary-foreground transition-colors"
+          title="Toggle Theme"
+        >
+          {dark ? <Sun className="h-4 w-4" /> : <Moon className="h-4 w-4" />}
+        </button>
       </div>
     </aside>
   );
@@ -186,9 +205,10 @@ function Sidebar({ onNavigate }: { onNavigate?: () => void }) {
 function RootComponent() {
   const { queryClient } = Route.useRouteContext();
   const settings = useSettings();
+  const { dark, toggle: toggleDark } = useDarkMode();
 
   useEffect(() => {
-    document.title = `${settings.hotelName} — Loyalty Tracker`;
+    document.title = `${settings.hotelName} — CD Billing`;
     
     // Prevent Capacitor splash screen bug where touch overlay blocks clicks
     if (import.meta.env.VITE_IS_CAPACITOR) {
@@ -202,16 +222,36 @@ function RootComponent() {
       <div className="flex min-h-screen bg-background">
         {/* Desktop sidebar */}
         <div className="hidden md:flex">
-          <Sidebar />
+          <Sidebar dark={dark} toggleDark={toggleDark} />
         </div>
 
         <div className="flex min-w-0 flex-1 flex-col">
-          {/* Mobile Header */}
-          <header className="sticky top-0 z-40 flex items-center justify-center border-b border-border bg-card px-4 py-3 md:hidden">
-            <div className="font-display text-lg text-primary">{settings.hotelName}</div>
+          {/* Mobile Header with Theme Toggle & Hotel Name */}
+          <header className="sticky top-0 z-40 flex items-center justify-between border-b border-border bg-card/95 backdrop-blur-md px-3.5 py-2.5 md:hidden">
+            <div className="flex items-center gap-2">
+              <span className="font-display text-base font-bold text-primary truncate max-w-[200px]">
+                {settings.hotelName}
+              </span>
+            </div>
+
+            <div className="flex items-center gap-1.5">
+              <button
+                onClick={toggleDark}
+                className="flex h-8 w-8 items-center justify-center rounded-full bg-secondary border border-border text-foreground hover:bg-primary hover:text-primary-foreground transition-colors"
+                title={dark ? "Switch to Light Mode" : "Switch to Dark Mode"}
+              >
+                {dark ? <Sun className="h-4 w-4 text-accent" /> : <Moon className="h-4 w-4 text-primary" />}
+              </button>
+              <Link
+                to="/new-bill"
+                className="btn-accent py-1 px-2.5 text-xs font-bold gap-1 rounded-full shadow-xs"
+              >
+                + Bill
+              </Link>
+            </div>
           </header>
 
-          <main className="flex-1 px-3 py-4 md:px-8 md:py-8 pb-20 md:pb-8">
+          <main className="flex-1 px-3 py-3 md:px-8 md:py-6 pb-20 md:pb-8">
             <div className="mx-auto max-w-6xl">
               <Outlet />
             </div>
@@ -219,19 +259,19 @@ function RootComponent() {
         </div>
 
         {/* Mobile Bottom Navigation */}
-        <nav className="fixed bottom-0 left-0 right-0 z-50 flex border-t border-border bg-card pb-safe pt-1 md:hidden">
+        <nav className="fixed bottom-0 left-0 right-0 z-50 flex border-t border-border bg-card/95 backdrop-blur-md pb-safe pt-1 md:hidden">
           {NAV_ITEMS.map((item) => (
             <Link
               key={item.to}
               to={item.to}
-              className="flex flex-1 flex-col items-center justify-center py-2 text-muted-foreground transition-colors"
+              className="flex flex-1 flex-col items-center justify-center py-1.5 text-muted-foreground transition-colors"
               activeProps={{
-                className: "text-primary",
+                className: "text-primary font-bold",
               }}
               activeOptions={{ exact: item.to === "/" }}
             >
-              <span className="text-xl leading-none">{item.icon}</span>
-              <span className="mt-1 text-[10px] font-medium tracking-wide">{item.label}</span>
+              <item.Icon className="h-4 w-4" />
+              <span className="mt-1 text-[10px] tracking-wide">{item.label}</span>
             </Link>
           ))}
         </nav>

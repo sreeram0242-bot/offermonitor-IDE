@@ -9,6 +9,7 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as SettingsRouteImport } from './routes/settings'
 import { Route as RevenueRouteImport } from './routes/revenue'
 import { Route as NewBillRouteImport } from './routes/new-bill'
 import { Route as MenuRouteImport } from './routes/menu'
@@ -17,6 +18,11 @@ import { Route as BillsRouteImport } from './routes/bills'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as CustomerPhoneRouteImport } from './routes/customer.$phone'
 
+const SettingsRoute = SettingsRouteImport.update({
+  id: '/settings',
+  path: '/settings',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const RevenueRoute = RevenueRouteImport.update({
   id: '/revenue',
   path: '/revenue',
@@ -60,6 +66,7 @@ export interface FileRoutesByFullPath {
   '/menu': typeof MenuRoute
   '/new-bill': typeof NewBillRoute
   '/revenue': typeof RevenueRoute
+  '/settings': typeof SettingsRoute
   '/customer/$phone': typeof CustomerPhoneRoute
 }
 export interface FileRoutesByTo {
@@ -69,6 +76,7 @@ export interface FileRoutesByTo {
   '/menu': typeof MenuRoute
   '/new-bill': typeof NewBillRoute
   '/revenue': typeof RevenueRoute
+  '/settings': typeof SettingsRoute
   '/customer/$phone': typeof CustomerPhoneRoute
 }
 export interface FileRoutesById {
@@ -79,6 +87,7 @@ export interface FileRoutesById {
   '/menu': typeof MenuRoute
   '/new-bill': typeof NewBillRoute
   '/revenue': typeof RevenueRoute
+  '/settings': typeof SettingsRoute
   '/customer/$phone': typeof CustomerPhoneRoute
 }
 export interface FileRouteTypes {
@@ -90,6 +99,7 @@ export interface FileRouteTypes {
     | '/menu'
     | '/new-bill'
     | '/revenue'
+    | '/settings'
     | '/customer/$phone'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -99,6 +109,7 @@ export interface FileRouteTypes {
     | '/menu'
     | '/new-bill'
     | '/revenue'
+    | '/settings'
     | '/customer/$phone'
   id:
     | '__root__'
@@ -108,6 +119,7 @@ export interface FileRouteTypes {
     | '/menu'
     | '/new-bill'
     | '/revenue'
+    | '/settings'
     | '/customer/$phone'
   fileRoutesById: FileRoutesById
 }
@@ -118,11 +130,19 @@ export interface RootRouteChildren {
   MenuRoute: typeof MenuRoute
   NewBillRoute: typeof NewBillRoute
   RevenueRoute: typeof RevenueRoute
+  SettingsRoute: typeof SettingsRoute
   CustomerPhoneRoute: typeof CustomerPhoneRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/settings': {
+      id: '/settings'
+      path: '/settings'
+      fullPath: '/settings'
+      preLoaderRoute: typeof SettingsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/revenue': {
       id: '/revenue'
       path: '/revenue'
@@ -182,18 +202,9 @@ const rootRouteChildren: RootRouteChildren = {
   MenuRoute: MenuRoute,
   NewBillRoute: NewBillRoute,
   RevenueRoute: RevenueRoute,
+  SettingsRoute: SettingsRoute,
   CustomerPhoneRoute: CustomerPhoneRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}

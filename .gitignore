@@ -32,3 +32,9 @@ build-electron
 *.njsproj
 *.sln
 *.sw?
+
+# Desktop & Android Binary builds
+CD BILLING-win-x64/
+*.exe
+CD BILLING.apk
+build-electron/

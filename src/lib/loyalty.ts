@@ -63,7 +63,16 @@ export function saveCategories(cats: string[]) {
   _cachedCategories = cats;
   localStorage.setItem(CATEGORIES_KEY, JSON.stringify(cats));
 }
-export type BillItem = { name: string; price: number; qty: number; costPrice?: number };
+export type PaymentMethod = "Cash" | "UPI" | "Card";
+
+export type BillItem = {
+  name: string;
+  price: number;
+  qty: number;
+  costPrice?: number;
+  isFree?: boolean;
+};
+
 export type Bill = {
   id: string;
   phone: string;
@@ -76,6 +85,10 @@ export type Bill = {
   freeItem?: { name: string; price: number } | null;
   tableName?: string;
   orderNumber?: string;
+  tokenNumber?: number;
+  paymentMethod?: PaymentMethod;
+  createdAt?: string; // ISO timestamp
+  notes?: string;
 };
 
 const MENU_KEY = "ek_menu_v1";
@@ -215,8 +228,22 @@ export function deleteBill(id: string) {
   saveBills(updated);
 }
 
+export function getNextTokenNumber(date: string = todayISO()): number {
+  const bills = loadBills();
+  const todaysBills = bills.filter((b) => b.date === date);
+  return todaysBills.length + 1;
+}
+
 export function addBill(bill: Bill) {
-  const all = [...loadBills(), bill];
+  const token = bill.tokenNumber || getNextTokenNumber(bill.date);
+  const normalizedBill: Bill = {
+    ...bill,
+    tokenNumber: token,
+    orderNumber: bill.orderNumber || `#${token}`,
+    paymentMethod: bill.paymentMethod || "Cash",
+    createdAt: bill.createdAt || new Date().toISOString(),
+  };
+  const all = [...loadBills(), normalizedBill];
   saveBills(all);
 }
 
@@ -383,20 +410,39 @@ export function newId() {
 // ---------------------------------------------------------------------------
 export type AppSettings = {
   hotelName: string;
+  hotelPhone?: string;
+  hotelAddress?: string;
   streakOfferEnabled: boolean;
   requireCustomerDetails: boolean;
   tablesEnabled: boolean;
   tableNames: string[];
   gstPercentage: number;
+  autoPrintReceipt?: boolean;
+  
+  // WhatsApp Direct Invoicing (100% On Mobile Phone - Zero Server / PC needed)
+  autoOpenWhatsApp?: boolean;
+  whatsappBillTemplate?: string;
+
+  // Optional External Baileys Gateway (if user runs server)
+  autoWhatsAppBaileys?: boolean;
+  whatsappServerUrl?: string;
 };
 
 export const DEFAULT_SETTINGS: AppSettings = {
   hotelName: "CD Billing",
+  hotelPhone: "9025898839",
+  hotelAddress: "80 feet road, opp. BOB Bank, Karur",
   streakOfferEnabled: true,
-  requireCustomerDetails: true,
+  requireCustomerDetails: false, // Default false for fast counter checkout!
   tablesEnabled: false,
   tableNames: ["Table 1", "Table 2", "Table 3", "Table 4"],
   gstPercentage: 0,
+  autoPrintReceipt: false,
+
+  autoOpenWhatsApp: true, // Default ON: Automatically triggers WhatsApp on the phone! Zero server needed!
+  whatsappBillTemplate: "",
+  autoWhatsAppBaileys: false,
+  whatsappServerUrl: "http://localhost:3001",
 };
 
 const SETTINGS_KEY = "ek_settings_v1";
