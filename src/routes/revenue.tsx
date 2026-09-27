@@ -1,4 +1,4 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useState, useMemo } from "react";
 import { loadBills, type Bill, newId, useSettings } from "@/lib/loyalty";
 import {

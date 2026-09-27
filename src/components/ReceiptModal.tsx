@@ -32,7 +32,8 @@ export function ReceiptModal({ isOpen, onClose, bill, onNextOrder }: ReceiptModa
   }
 
   async function handleWhatsAppShare() {
-    const rawPhone = bill?.phone?.replace(/\D/g, "") || "";
+    if (!bill) return;
+    const rawPhone = bill.phone?.replace(/\D/g, "") || "";
     let targetPhone = rawPhone;
 
     if (!targetPhone || targetPhone.length < 10) {

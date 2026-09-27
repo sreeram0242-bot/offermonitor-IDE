@@ -57,7 +57,7 @@ function NewBill() {
   const [date, setDate] = useState(todayISO());
   const [items, setItems] = useState<BillItem[]>([]);
   const [search, setSearch] = useState("");
-  const [category, setCategory] = useState<string>("Popular");
+  const [category, setCategory] = useState<string>("All");
   const [freeItemId, setFreeItemId] = useState<string>("");
   const [isFreeMode, setIsFreeMode] = useState<boolean>(false);
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>("Cash");
@@ -511,7 +511,8 @@ function NewBill() {
               return (
                 <div
                   key={`${m.id}-${isFreeMode}`}
-                  className={`card-soft p-3 flex flex-col justify-between rounded-xl transition-all duration-150 border-2 ${
+                  onClick={(e) => { e.stopPropagation(); addItem(m); }}
+                  className={`card-soft p-3 flex flex-col justify-between rounded-xl transition-all duration-150 border-2 cursor-pointer active:scale-[0.98] select-none ${
                     isSelected
                       ? "border-accent bg-accent/10 shadow-sm"
                       : isFreeMode
@@ -548,7 +549,7 @@ function NewBill() {
                       <div className="flex items-center gap-1.5 bg-background rounded-full border border-primary/30 p-0.5 shadow-xs">
                         <button
                           type="button"
-                          onClick={() => removeItem(m.name, isFreeMode)}
+                          onClick={(e) => { e.stopPropagation(); removeItem(m.name, isFreeMode); }}
                           className="flex h-7 w-7 items-center justify-center rounded-full bg-secondary text-foreground hover:bg-destructive/20 hover:text-destructive active:scale-90 transition-transform font-bold"
                           title="Decrease"
                         >
@@ -559,7 +560,7 @@ function NewBill() {
                         </span>
                         <button
                           type="button"
-                          onClick={() => addItem(m)}
+                          onClick={(e) => { e.stopPropagation(); addItem(m); }}
                           className="flex h-7 w-7 items-center justify-center rounded-full bg-primary text-primary-foreground hover:opacity-90 active:scale-90 transition-transform font-bold"
                           title="Increase"
                         >
@@ -569,7 +570,7 @@ function NewBill() {
                     ) : (
                       <button
                         type="button"
-                        onClick={() => addItem(m)}
+                        onClick={(e) => { e.stopPropagation(); addItem(m); }}
                         className="flex items-center gap-1 rounded-full border border-primary/30 bg-primary/10 px-3 py-1.5 text-xs font-bold text-primary hover:bg-primary hover:text-primary-foreground active:scale-95 transition-all"
                       >
                         <Plus className="h-3.5 w-3.5" />
