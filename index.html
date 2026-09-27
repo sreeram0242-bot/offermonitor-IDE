@@ -3,32 +3,22 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0" />
-    <title>CD Billing</title>
+    <title>C BILLING</title>
   </head>
   <body>
     <div id="root"></div>
     <script type="module" src="/src/client-entry.tsx"></script>
     <script>
-      // Force remove Lovable badge
-      const removeBadge = () => {
-        document.querySelectorAll('#lovable-badge-root, .lovable-badge, [data-lovable-badge], a[href*="lovable.dev"]').forEach(el => el.remove());
-      };
-      const observer = new MutationObserver(() => removeBadge());
-      observer.observe(document.body, { childList: true, subtree: true });
-      window.addEventListener('load', removeBadge);
-      setTimeout(removeBadge, 1000);
-      setTimeout(removeBadge, 3000);
-    </script>
-    <script>
-      // Force remove Lovable badge
-      const removeBadge = () => {
-        document.querySelectorAll('#lovable-badge-root, .lovable-badge, [data-lovable-badge], a[href*="lovable.dev"]').forEach(el => el.remove());
-      };
-      const observer = new MutationObserver(() => removeBadge());
-      observer.observe(document.body, { childList: true, subtree: true });
-      window.addEventListener('load', removeBadge);
-      setTimeout(removeBadge, 1000);
-      setTimeout(removeBadge, 3000);
+      (function() {
+        const removeBadge = () => {
+          document.querySelectorAll('#lovable-badge-root, .lovable-badge, [data-lovable-badge], a[href*="lovable.dev"]').forEach(el => el.remove());
+        };
+        const observer = new MutationObserver(() => removeBadge());
+        observer.observe(document.body, { childList: true, subtree: true });
+        window.addEventListener('load', removeBadge);
+        setTimeout(removeBadge, 1000);
+        setTimeout(removeBadge, 3000);
+      })();
     </script>
   </body>
 </html>

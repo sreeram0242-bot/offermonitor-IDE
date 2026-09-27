@@ -40,7 +40,7 @@ function Dashboard() {
   }, []);
 
   const filtered = customers.filter(
-    (c) => c.name.toLowerCase().includes(query.toLowerCase()) || c.phone.includes(query),
+    (c) => (c.name || '').toLowerCase().includes((query || '').toLowerCase()) || (c.phone || '').includes(query || ''),
   );
 
   const totalCustomers = customers.length;
@@ -257,7 +257,7 @@ function Dashboard() {
                       </button>
                     </div>
                     <ul className="space-y-1 max-h-40 overflow-y-auto">
-                      {settings.tableNames.map((t, i) => (
+                      {(settings.tableNames || []).map((t, i) => (
                         <li key={i} className="flex justify-between items-center text-sm bg-background p-2 rounded border border-border">
                           <span>{t}</span>
                           <button 
@@ -273,7 +273,7 @@ function Dashboard() {
                           </button>
                         </li>
                       ))}
-                      {settings.tableNames.length === 0 && (
+                      {(!settings.tableNames || settings.tableNames.length === 0) && (
                         <li className="text-xs text-muted-foreground text-center py-2">No tables added yet.</li>
                       )}
                     </ul>

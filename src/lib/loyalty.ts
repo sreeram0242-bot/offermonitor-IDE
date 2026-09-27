@@ -1,5 +1,5 @@
 // LocalStorage-backed data layer for CD Billing loyalty tracker.
-// Single-device only. No backend.
+// Single-device offline capable. Optional cloud WhatsApp gateway.
 import { useState, useEffect } from "react";
 
 export type MenuItem = {
@@ -19,6 +19,8 @@ export const DEFAULT_CATEGORIES = [
   "Rice",
   "Momos",
   "Mojito",
+  "Rolls",
+  "Beverages",
 ];
 
 const CATEGORIES_KEY = "ek_categories_v1";
@@ -32,11 +34,13 @@ export function categoryFromId(id: string): string {
   if (id.startsWith("m")) return "Manchurian";
   if (id.startsWith("n")) return "Noodles";
   if (id.startsWith("r")) return "Rice";
+  if (id.startsWith("ro")) return "Rolls";
+  if (id.startsWith("bv")) return "Beverages";
   return "Other";
 }
 
 export function getCategoryOf(item: MenuItem): string {
-  return item.category?.trim() || categoryFromId(item.id);
+  return item?.category?.trim() || categoryFromId(item?.id || "");
 }
 
 let _cachedCategories: string[] | null = null;
@@ -51,8 +55,14 @@ export function loadCategories(): string[] {
       _cachedCategories = DEFAULT_CATEGORIES;
       return DEFAULT_CATEGORIES;
     }
-    _cachedCategories = JSON.parse(raw);
-    return _cachedCategories!;
+    const parsed = JSON.parse(raw);
+    if (Array.isArray(parsed) && parsed.length > 0) {
+      const merged = Array.from(new Set([...DEFAULT_CATEGORIES, ...parsed]));
+      _cachedCategories = merged;
+      return merged;
+    }
+    _cachedCategories = DEFAULT_CATEGORIES;
+    return DEFAULT_CATEGORIES;
   } catch {
     return DEFAULT_CATEGORIES;
   }
@@ -63,6 +73,7 @@ export function saveCategories(cats: string[]) {
   _cachedCategories = cats;
   localStorage.setItem(CATEGORIES_KEY, JSON.stringify(cats));
 }
+
 export type PaymentMethod = "Cash" | "UPI" | "Card";
 
 export type BillItem = {
@@ -98,78 +109,130 @@ export const FREE_ITEM_MAX_PRICE = 79;
 export const STREAK_TARGET = 6;
 
 export const DEFAULT_MENU: MenuItem[] = [
-  // Sandwiches
-  { id: "s1", name: "Veg sandwich", price: 39 },
-  { id: "s2", name: "Club sandwich", price: 39 },
-  { id: "s3", name: "Veg korean toasty sandwich", price: 59 },
-  { id: "s4", name: "Veg loaded sandwich / Paneer", price: 59 },
-  { id: "s5", name: "Chicken sandwich", price: 69 },
-  { id: "s6", name: "Chicken loaded sandwich", price: 89 },
-  { id: "s7", name: "Egg stuffed sandwich", price: 69 },
-  { id: "s8", name: "Chicken Korean toasty sandwich", price: 79 },
-  { id: "s9", name: "Chocolate sandwich", price: 59 },
-  { id: "s10", name: "Bread omelette", price: 39 },
-  // Burgers
-  { id: "b1", name: "Veg Burger", price: 59 },
-  { id: "b2", name: "Veg Gochujang burger", price: 69 },
-  { id: "b3", name: "Chicken burger", price: 79 },
-  { id: "b4", name: "Ramali chicken burger", price: 99 },
-  { id: "b5", name: "Chicken gochujang burger", price: 99 },
-  { id: "b6", name: "Fried chicken burger", price: 89 },
-  { id: "b7", name: "Chicken smashed burger", price: 110 },
-  { id: "b8", name: "Double decker burger", price: 139 },
-  // Fries
-  { id: "f1", name: "Classical french fries", price: 39 },
-  { id: "f2", name: "Peri peri french fries", price: 59 },
-  { id: "f3", name: "Veg loaded fries", price: 79 },
-  { id: "f4", name: "Chicken loaded fries", price: 139 },
-  { id: "f5", name: "Korean hot toasty fries", price: 59 },
-  { id: "f6", name: "Chilli potato pops", price: 59 },
-  { id: "f7", name: "Fried chicken wings (3pcs)", price: 79 },
-  { id: "f8", name: "Lays chicken", price: 79 },
-  { id: "f9", name: "Fried chicken lollipop (3pcs)", price: 79 },
-  { id: "f10", name: "Korean Toasty popcorn", price: 139 },
-  { id: "f11", name: "Korean toasty wings", price: 139 },
-  { id: "f12", name: "Korean Toasty lollipop", price: 139 },
-  { id: "f13", name: "Chicken pop corn", price: 99 },
-  // Manchurian
-  { id: "m1", name: "Veg manchurian", price: 59 },
-  { id: "m2", name: "Paneer spicy manchurian", price: 69 },
-  { id: "m3", name: "Chicken spicy manchurian", price: 69 },
-  { id: "m4", name: "Crispy chicken manchurian", price: 79 },
-  // Noodles
-  { id: "n1", name: "Veg noodles", price: 59 },
-  { id: "n2", name: "Egg noodles", price: 69 },
-  { id: "n3", name: "Chicken noodles", price: 79 },
-  { id: "n4", name: "Crispy chicken noodles", price: 110 },
-  { id: "n5", name: "Korean special veg noodles", price: 69 },
-  { id: "n6", name: "Korean special egg noodles", price: 79 },
-  { id: "n7", name: "Korean special chicken noodles", price: 99 },
-  { id: "n8", name: "Schezwan veg noodles", price: 69 },
-  { id: "n9", name: "Schezwan egg noodles", price: 79 },
-  { id: "n10", name: "Schezwan chicken noodles", price: 99 },
-  // Rice
-  { id: "r1", name: "Veg rice", price: 59 },
-  { id: "r2", name: "Egg rice", price: 69 },
-  { id: "r3", name: "Chicken rice", price: 79 },
-  { id: "r4", name: "Crispy chicken rice", price: 110 },
-  { id: "r5", name: "Korean special veg rice", price: 69 },
-  { id: "r6", name: "Korean special egg rice", price: 79 },
-  { id: "r7", name: "Korean special chicken rice", price: 99 },
-  { id: "r8", name: "Schezwan veg rice", price: 69 },
-  { id: "r9", name: "Schezwan egg rice", price: 79 },
-  { id: "r10", name: "Schezwan chicken rice", price: 89 },
-  // Momos
-  { id: "mo1", name: "Veg momos", price: 59 },
-  { id: "mo2", name: "Paneer momos", price: 69 },
-  { id: "mo3", name: "Chicken momos", price: 79 },
-  // Mojito
-  { id: "mj1", name: "Deep blue sky mojito", price: 69 },
-  { id: "mj2", name: "Lemon and mint mojito", price: 69 },
-  { id: "mj3", name: "Green apple mojito", price: 69 },
-  { id: "mj4", name: "Triple sip extra vibe mojito", price: 79 },
-  { id: "mj5", name: "Peach mojito", price: 79 },
-  { id: "mj6", name: "Lemon soda", price: 49 },
+  // 1. Sandwiches
+  { id: "s1", name: "Veg Sandwich", price: 39, category: "Sandwiches" },
+  { id: "s2", name: "Club Sandwich", price: 49, category: "Sandwiches" },
+  { id: "s3", name: "Veg Korean Toasty Sandwich", price: 59, category: "Sandwiches" },
+  { id: "s4", name: "Veg Loaded Paneer Sandwich", price: 69, category: "Sandwiches" },
+  { id: "s5", name: "Corn & Cheese Grilled Sandwich", price: 59, category: "Sandwiches" },
+  { id: "s6", name: "Bombay Masala Toast", price: 49, category: "Sandwiches" },
+  { id: "s7", name: "Egg Stuffed Sandwich", price: 59, category: "Sandwiches" },
+  { id: "s8", name: "Chicken Sandwich", price: 69, category: "Sandwiches" },
+  { id: "s9", name: "Chicken Loaded Sandwich", price: 89, category: "Sandwiches" },
+  { id: "s10", name: "Chicken Korean Toasty Sandwich", price: 79, category: "Sandwiches" },
+  { id: "s11", name: "Chocolate Grilled Sandwich", price: 49, category: "Sandwiches" },
+  { id: "s12", name: "Bread Omelette", price: 39, category: "Sandwiches" },
+  { id: "s13", name: "Cheese Bread Omelette", price: 49, category: "Sandwiches" },
+
+  // 2. Burgers
+  { id: "b1", name: "Classic Veg Burger", price: 59, category: "Burgers" },
+  { id: "b2", name: "Crispy Paneer Burger", price: 79, category: "Burgers" },
+  { id: "b3", name: "Veg Gochujang Burger", price: 69, category: "Burgers" },
+  { id: "b4", name: "Spicy Mexican Veg Burger", price: 69, category: "Burgers" },
+  { id: "b5", name: "Classic Chicken Burger", price: 79, category: "Burgers" },
+  { id: "b6", name: "Fried Crispy Chicken Burger", price: 89, category: "Burgers" },
+  { id: "b7", name: "Ramali Chicken Burger", price: 99, category: "Burgers" },
+  { id: "b8", name: "Chicken Gochujang Burger", price: 99, category: "Burgers" },
+  { id: "b9", name: "Chicken Smashed Burger", price: 110, category: "Burgers" },
+  { id: "b10", name: "Double Decker Burger", price: 139, category: "Burgers" },
+  { id: "b11", name: "Tandoori Chicken Burger", price: 89, category: "Burgers" },
+
+  // 3. Fries & Sides
+  { id: "f1", name: "Classic French Fries", price: 39, category: "Fries" },
+  { id: "f2", name: "Peri Peri French Fries", price: 59, category: "Fries" },
+  { id: "f3", name: "Cheesy Loaded Fries", price: 79, category: "Fries" },
+  { id: "f4", name: "Veg Loaded Fries", price: 69, category: "Fries" },
+  { id: "f5", name: "Chicken Loaded Fries", price: 119, category: "Fries" },
+  { id: "f6", name: "Korean Hot Toasty Fries", price: 59, category: "Fries" },
+  { id: "f7", name: "Chilli Potato Pops", price: 59, category: "Fries" },
+  { id: "f8", name: "Fried Chicken Wings (3pcs)", price: 79, category: "Fries" },
+  { id: "f9", name: "Lays Crusted Chicken", price: 79, category: "Fries" },
+  { id: "f10", name: "Fried Chicken Lollipop (3pcs)", price: 79, category: "Fries" },
+  { id: "f11", name: "Crispy Chicken Popcorn", price: 99, category: "Fries" },
+  { id: "f12", name: "Korean Toasty Popcorn", price: 129, category: "Fries" },
+  { id: "f13", name: "Korean Toasty Wings", price: 129, category: "Fries" },
+  { id: "f14", name: "Korean Toasty Lollipop", price: 129, category: "Fries" },
+  { id: "f15", name: "Chicken Nuggets (6pcs)", price: 79, category: "Fries" },
+
+  // 4. Manchurian & Starters
+  { id: "m1", name: "Veg Dry Manchurian", price: 59, category: "Manchurian" },
+  { id: "m2", name: "Veg Gravy Manchurian", price: 69, category: "Manchurian" },
+  { id: "m3", name: "Paneer Spicy Manchurian", price: 69, category: "Manchurian" },
+  { id: "m4", name: "Crispy Babycorn Manchurian", price: 69, category: "Manchurian" },
+  { id: "m5", name: "Gobi Manchurian", price: 59, category: "Manchurian" },
+  { id: "m6", name: "Mushroom Manchurian", price: 69, category: "Manchurian" },
+  { id: "m7", name: "Chicken Dry Manchurian", price: 69, category: "Manchurian" },
+  { id: "m8", name: "Chicken Spicy Manchurian", price: 79, category: "Manchurian" },
+  { id: "m9", name: "Crispy Chicken Manchurian", price: 79, category: "Manchurian" },
+  { id: "m10", name: "Dragon Chicken", price: 89, category: "Manchurian" },
+  { id: "m11", name: "Chilli Chicken Dry", price: 89, category: "Manchurian" },
+
+  // 5. Noodles
+  { id: "n1", name: "Veg Hakka Noodles", price: 59, category: "Noodles" },
+  { id: "n2", name: "Egg Hakka Noodles", price: 69, category: "Noodles" },
+  { id: "n3", name: "Chicken Hakka Noodles", price: 79, category: "Noodles" },
+  { id: "n4", name: "Crispy Chicken Noodles", price: 109, category: "Noodles" },
+  { id: "n5", name: "Schezwan Veg Noodles", price: 69, category: "Noodles" },
+  { id: "n6", name: "Schezwan Egg Noodles", price: 79, category: "Noodles" },
+  { id: "n7", name: "Schezwan Chicken Noodles", price: 89, category: "Noodles" },
+  { id: "n8", name: "Korean Special Veg Noodles", price: 69, category: "Noodles" },
+  { id: "n9", name: "Korean Special Egg Noodles", price: 79, category: "Noodles" },
+  { id: "n10", name: "Korean Special Chicken Noodles", price: 99, category: "Noodles" },
+  { id: "n11", name: "Singapore Veg Noodles", price: 69, category: "Noodles" },
+  { id: "n12", name: "Singapore Chicken Noodles", price: 89, category: "Noodles" },
+
+  // 6. Rice
+  { id: "r1", name: "Veg Fried Rice", price: 59, category: "Rice" },
+  { id: "r2", name: "Egg Fried Rice", price: 69, category: "Rice" },
+  { id: "r3", name: "Chicken Fried Rice", price: 79, category: "Rice" },
+  { id: "r4", name: "Crispy Chicken Fried Rice", price: 109, category: "Rice" },
+  { id: "r5", name: "Schezwan Veg Rice", price: 69, category: "Rice" },
+  { id: "r6", name: "Schezwan Egg Rice", price: 79, category: "Rice" },
+  { id: "r7", name: "Schezwan Chicken Rice", price: 89, category: "Rice" },
+  { id: "r8", name: "Korean Special Veg Rice", price: 69, category: "Rice" },
+  { id: "r9", name: "Korean Special Egg Rice", price: 79, category: "Rice" },
+  { id: "r10", name: "Korean Special Chicken Rice", price: 99, category: "Rice" },
+  { id: "r11", name: "Triple Schezwan Fried Rice", price: 119, category: "Rice" },
+  { id: "r12", name: "Paneer Fried Rice", price: 79, category: "Rice" },
+
+  // 7. Momos
+  { id: "mo1", name: "Steamed Veg Momos (5pcs)", price: 49, category: "Momos" },
+  { id: "mo2", name: "Fried Veg Momos (5pcs)", price: 59, category: "Momos" },
+  { id: "mo3", name: "Kurkure Veg Momos (5pcs)", price: 69, category: "Momos" },
+  { id: "mo4", name: "Steamed Paneer Momos (5pcs)", price: 59, category: "Momos" },
+  { id: "mo5", name: "Fried Paneer Momos (5pcs)", price: 69, category: "Momos" },
+  { id: "mo6", name: "Steamed Chicken Momos (5pcs)", price: 69, category: "Momos" },
+  { id: "mo7", name: "Fried Chicken Momos (5pcs)", price: 79, category: "Momos" },
+  { id: "mo8", name: "Kurkure Chicken Momos (5pcs)", price: 89, category: "Momos" },
+  { id: "mo9", name: "Peri Peri Fried Momos (5pcs)", price: 79, category: "Momos" },
+
+  // 8. Mojito & Coolers
+  { id: "mj1", name: "Deep Blue Sky Mojito", price: 59, category: "Mojito" },
+  { id: "mj2", name: "Lemon & Mint Virgin Mojito", price: 59, category: "Mojito" },
+  { id: "mj3", name: "Green Apple Mojito", price: 59, category: "Mojito" },
+  { id: "mj4", name: "Watermelon Cool Mojito", price: 59, category: "Mojito" },
+  { id: "mj5", name: "Triple Sip Extra Vibe Mojito", price: 69, category: "Mojito" },
+  { id: "mj6", name: "Peach Passion Mojito", price: 69, category: "Mojito" },
+  { id: "mj7", name: "Fresh Lemon Soda (Sweet/Salt)", price: 39, category: "Mojito" },
+  { id: "mj8", name: "Kala Khatta Soda", price: 49, category: "Mojito" },
+  { id: "mj9", name: "Blue Lagoon Mocktail", price: 59, category: "Mojito" },
+
+  // 9. Rolls & Wraps
+  { id: "ro1", name: "Veg Kathi Roll", price: 49, category: "Rolls" },
+  { id: "ro2", name: "Paneer Tikka Roll", price: 69, category: "Rolls" },
+  { id: "ro3", name: "Single Egg Roll", price: 49, category: "Rolls" },
+  { id: "ro4", name: "Double Egg Roll", price: 59, category: "Rolls" },
+  { id: "ro5", name: "Chicken Kathi Roll", price: 69, category: "Rolls" },
+  { id: "ro6", name: "Crispy Chicken Roll", price: 79, category: "Rolls" },
+  { id: "ro7", name: "Schezwan Chicken Roll", price: 79, category: "Rolls" },
+
+  // 10. Beverages & Shakes
+  { id: "bv1", name: "Cold Coffee", price: 49, category: "Beverages" },
+  { id: "bv2", name: "Thick Chocolate Shake", price: 69, category: "Beverages" },
+  { id: "bv3", name: "Oreo Milkshake", price: 69, category: "Beverages" },
+  { id: "bv4", name: "KitKat Crunch Shake", price: 79, category: "Beverages" },
+  { id: "bv5", name: "Cold Badam Milk", price: 39, category: "Beverages" },
+  { id: "bv6", name: "Bottled Mineral Water", price: 20, category: "Beverages" },
 ];
 
 function isBrowser() {
@@ -184,12 +247,30 @@ export function loadMenu(): MenuItem[] {
   try {
     const raw = localStorage.getItem(MENU_KEY);
     if (!raw) {
-      localStorage.setItem(MENU_KEY, JSON.stringify(DEFAULT_MENU));
       _cachedMenu = DEFAULT_MENU;
+      localStorage.setItem(MENU_KEY, JSON.stringify(DEFAULT_MENU));
       return DEFAULT_MENU;
     }
-    _cachedMenu = JSON.parse(raw);
-    return _cachedMenu!;
+    const parsed = JSON.parse(raw);
+    if (Array.isArray(parsed) && parsed.length > 0) {
+      const existingNames = new Set(parsed.map((item: MenuItem) => (item.name || "").toLowerCase()));
+      const missingDefaults = DEFAULT_MENU.filter((item) => !existingNames.has(item.name.toLowerCase()));
+      
+      const merged = [
+        ...parsed.map((item: MenuItem) => ({
+          ...item,
+          name: item.name || "Item",
+          price: Number(item.price) || 0,
+          category: item.category || categoryFromId(item.id || ""),
+        })),
+        ...missingDefaults,
+      ];
+      _cachedMenu = merged;
+      return merged;
+    }
+    _cachedMenu = DEFAULT_MENU;
+    localStorage.setItem(MENU_KEY, JSON.stringify(DEFAULT_MENU));
+    return DEFAULT_MENU;
   } catch {
     return DEFAULT_MENU;
   }
@@ -201,6 +282,15 @@ export function saveMenu(items: MenuItem[]) {
   localStorage.setItem(MENU_KEY, JSON.stringify(items));
 }
 
+export function resetMenuToDefaults(): MenuItem[] {
+  if (!isBrowser()) return DEFAULT_MENU;
+  _cachedMenu = DEFAULT_MENU;
+  localStorage.setItem(MENU_KEY, JSON.stringify(DEFAULT_MENU));
+  saveCategories(DEFAULT_CATEGORIES);
+  window.dispatchEvent(new Event("menu-changed"));
+  return DEFAULT_MENU;
+}
+
 let _cachedBills: Bill[] | null = null;
 
 export function loadBills(): Bill[] {
@@ -208,8 +298,32 @@ export function loadBills(): Bill[] {
   if (_cachedBills) return _cachedBills;
   try {
     const raw = localStorage.getItem(BILLS_KEY);
-    _cachedBills = raw ? JSON.parse(raw) : [];
-    return _cachedBills!;
+    if (!raw) {
+      _cachedBills = [];
+      return [];
+    }
+    const parsed = JSON.parse(raw);
+    if (Array.isArray(parsed)) {
+      _cachedBills = parsed.map((b) => ({
+        ...b,
+        id: b.id || newId(),
+        name: b.name || "Walk-in Customer",
+        phone: b.phone || "",
+        date: b.date || todayISO(),
+        items: Array.isArray(b.items)
+          ? b.items.map((it: BillItem) => ({
+              ...it,
+              name: it?.name || "Item",
+              price: Number(it?.price) || 0,
+              qty: Number(it?.qty) || 1,
+            }))
+          : [],
+        total: Number(b.total) || 0,
+      }));
+      return _cachedBills;
+    }
+    _cachedBills = [];
+    return [];
   } catch {
     return [];
   }
@@ -247,7 +361,6 @@ export function addBill(bill: Bill) {
   saveBills(all);
 }
 
-
 export function todayISO(): string {
   const d = new Date();
   const y = d.getFullYear();
@@ -257,7 +370,10 @@ export function todayISO(): string {
 }
 
 export function formatDate(iso: string): string {
-  const [y, m, d] = iso.split("-").map(Number);
+  if (!iso) return "-";
+  const parts = iso.split("-").map(Number);
+  if (parts.length < 3) return iso;
+  const [y, m, d] = parts;
   const dt = new Date(y, m - 1, d);
   return dt.toLocaleDateString("en-IN", {
     day: "numeric",
@@ -273,24 +389,14 @@ function addDaysISO(iso: string, delta: number): string {
   return `${dt.getFullYear()}-${String(dt.getMonth() + 1).padStart(2, "0")}-${String(dt.getDate()).padStart(2, "0")}`;
 }
 
-/**
- * Consecutive-day streak logic.
- * Returns:
- *  - streak: number of consecutive days ending on the most recent visit (or today)
- *  - lastVisit: last visit date (ISO) or null
- *  - eligibleToday: true if the customer has 6 consecutive days ending yesterday
- *    OR the last 6 dates including today form a consecutive run, i.e. today is
- *    the "7th" reward day.
- *  - visitDates: sorted unique ISO dates
- */
 export function computeLoyalty(custBills: Bill[]) {
-  // Calculate total spent per date
   const dailyTotals = new Map<string, number>();
   for (const b of custBills) {
-    dailyTotals.set(b.date, (dailyTotals.get(b.date) || 0) + b.total);
+    if (b.date) {
+      dailyTotals.set(b.date, (dailyTotals.get(b.date) || 0) + (Number(b.total) || 0));
+    }
   }
 
-  // Filter dates where total spent >= 200
   const dates = Array.from(dailyTotals.entries())
     .filter(([_, total]) => total >= 200)
     .map(([date, _]) => date)
@@ -301,13 +407,12 @@ export function computeLoyalty(custBills: Bill[]) {
       streak: 0,
       lastVisit: null as string | null,
       eligibleToday: false,
-      visitDates: Array.from(new Set(custBills.map((b) => b.date))).sort(),
+      visitDates: Array.from(new Set(custBills.map((b) => b.date).filter(Boolean))).sort(),
     };
   }
 
   const lastVisit = dates[dates.length - 1];
 
-  // Walk backwards from lastVisit to find the current consecutive streak.
   let streak = 1;
   for (let i = dates.length - 2; i >= 0; i--) {
     if (dates[i] === addDaysISO(dates[i + 1], -1)) {
@@ -318,14 +423,10 @@ export function computeLoyalty(custBills: Bill[]) {
   }
 
   const today = todayISO();
-
-  // Eligible today = customer already logged 6 consecutive valid days ending yesterday
-  // OR 6+ consecutive valid days ending today (and hasn't yet used the free item today).
   let eligibleToday = false;
   if (lastVisit === addDaysISO(today, -1) && streak >= STREAK_TARGET) {
     eligibleToday = true;
   } else if (lastVisit === today && streak >= STREAK_TARGET) {
-    // On the 7th day itself, still eligible until they use it
     const todayBill = custBills.find((b) => b.date === today && b.freeItem);
     if (!todayBill) eligibleToday = true;
   }
@@ -334,7 +435,7 @@ export function computeLoyalty(custBills: Bill[]) {
     streak,
     lastVisit,
     eligibleToday,
-    visitDates: Array.from(new Set(custBills.map((b) => b.date))).sort(),
+    visitDates: Array.from(new Set(custBills.map((b) => b.date).filter(Boolean))).sort(),
   };
 }
 
@@ -355,29 +456,37 @@ export function getCustomers(bills: Bill[]): CustomerSummary[] {
   if (_lastBillsForCustomers === bills && _cachedCustomers) {
     return _cachedCustomers;
   }
-  
+
+  const safeBills = Array.isArray(bills) ? bills : [];
   const map = new Map<string, CustomerSummary>();
   const billsByPhone = new Map<string, Bill[]>();
-  
-  for (const b of bills) {
-    // Group bills by phone for O(1) lookup later
-    let arr = billsByPhone.get(b.phone);
+
+  for (const b of safeBills) {
+    const phone = (b.phone || "").trim();
+    if (!phone) continue;
+
+    let arr = billsByPhone.get(phone);
     if (!arr) {
       arr = [];
-      billsByPhone.set(b.phone, arr);
+      billsByPhone.set(phone, arr);
     }
     arr.push(b);
 
-    const existing = map.get(b.phone);
+    const existing = map.get(phone);
+    const safeTotal = Number(b.total) || 0;
+    const safeName = (b.name || "").trim() || "Customer " + phone;
+
     if (existing) {
-      existing.name = b.name || existing.name;
-      existing.totalSpent += b.total;
+      if (!existing.name || existing.name.startsWith("Customer ")) {
+        existing.name = safeName;
+      }
+      existing.totalSpent += safeTotal;
     } else {
-      map.set(b.phone, {
-        phone: b.phone,
-        name: b.name,
+      map.set(phone, {
+        phone: phone,
+        name: safeName,
         totalVisits: 0,
-        totalSpent: b.total,
+        totalSpent: safeTotal,
         lastVisit: null,
         streak: 0,
         eligibleToday: false,
@@ -392,12 +501,12 @@ export function getCustomers(bills: Bill[]): CustomerSummary[] {
     summary.streak = l.streak;
     summary.eligibleToday = l.eligibleToday;
   }
-  
+
   _cachedCustomers = Array.from(map.values()).sort((a, b) =>
     (b.lastVisit ?? "").localeCompare(a.lastVisit ?? ""),
   );
-  _lastBillsForCustomers = bills;
-  
+  _lastBillsForCustomers = safeBills;
+
   return _cachedCustomers;
 }
 
@@ -418,31 +527,31 @@ export type AppSettings = {
   tableNames: string[];
   gstPercentage: number;
   autoPrintReceipt?: boolean;
-  
-  // WhatsApp Direct Invoicing (100% On Mobile Phone - Zero Server / PC needed)
+
   autoOpenWhatsApp?: boolean;
   whatsappBillTemplate?: string;
 
-  // Optional External Baileys Gateway (if user runs server)
   autoWhatsAppBaileys?: boolean;
   whatsappServerUrl?: string;
 };
+
+export const DEFAULT_WHATSAPP_SERVER_URL = "https://cd-billing-baileys.onrender.com";
 
 export const DEFAULT_SETTINGS: AppSettings = {
   hotelName: "CD Billing",
   hotelPhone: "9025898839",
   hotelAddress: "80 feet road, opp. BOB Bank, Karur",
   streakOfferEnabled: true,
-  requireCustomerDetails: false, // Default false for fast counter checkout!
+  requireCustomerDetails: false,
   tablesEnabled: false,
   tableNames: ["Table 1", "Table 2", "Table 3", "Table 4"],
   gstPercentage: 0,
   autoPrintReceipt: false,
 
-  autoOpenWhatsApp: true, // Default ON: Automatically triggers WhatsApp on the phone! Zero server needed!
+  autoOpenWhatsApp: true,
   whatsappBillTemplate: "",
   autoWhatsAppBaileys: false,
-  whatsappServerUrl: "https://cd-billing-baileys.onrender.com",
+  whatsappServerUrl: DEFAULT_WHATSAPP_SERVER_URL,
 };
 
 const SETTINGS_KEY = "ek_settings_v1";
@@ -451,8 +560,34 @@ export function loadSettings(): AppSettings {
   if (!isBrowser()) return DEFAULT_SETTINGS;
   try {
     const raw = localStorage.getItem(SETTINGS_KEY);
-    if (!raw) return DEFAULT_SETTINGS;
-    return { ...DEFAULT_SETTINGS, ...JSON.parse(raw) };
+    if (!raw) {
+      localStorage.setItem(SETTINGS_KEY, JSON.stringify(DEFAULT_SETTINGS));
+      return DEFAULT_SETTINGS;
+    }
+    const parsed = JSON.parse(raw);
+
+    // Auto-migrate Render URL if empty, null, localhost or 127.0.0.1
+    let serverUrl = (parsed.whatsappServerUrl || "").trim();
+    if (!serverUrl || serverUrl.includes("localhost") || serverUrl.includes("127.0.0.1")) {
+      serverUrl = DEFAULT_WHATSAPP_SERVER_URL;
+    }
+
+    const merged: AppSettings = {
+      ...DEFAULT_SETTINGS,
+      ...parsed,
+      hotelName: parsed.hotelName || DEFAULT_SETTINGS.hotelName,
+      tableNames: Array.isArray(parsed.tableNames) && parsed.tableNames.length > 0
+        ? parsed.tableNames
+        : DEFAULT_SETTINGS.tableNames,
+      whatsappServerUrl: serverUrl,
+      autoOpenWhatsApp: parsed.autoOpenWhatsApp !== undefined ? parsed.autoOpenWhatsApp : true,
+    };
+
+    if (parsed.whatsappServerUrl !== serverUrl || !Array.isArray(parsed.tableNames)) {
+      localStorage.setItem(SETTINGS_KEY, JSON.stringify(merged));
+    }
+
+    return merged;
   } catch {
     return DEFAULT_SETTINGS;
   }
@@ -460,7 +595,14 @@ export function loadSettings(): AppSettings {
 
 export function saveSettings(settings: AppSettings) {
   if (!isBrowser()) return;
-  localStorage.setItem(SETTINGS_KEY, JSON.stringify(settings));
+  const toSave = {
+    ...settings,
+    whatsappServerUrl: settings.whatsappServerUrl?.trim() || DEFAULT_WHATSAPP_SERVER_URL,
+    tableNames: Array.isArray(settings.tableNames) && settings.tableNames.length > 0
+      ? settings.tableNames
+      : DEFAULT_SETTINGS.tableNames,
+  };
+  localStorage.setItem(SETTINGS_KEY, JSON.stringify(toSave));
   window.dispatchEvent(new Event("settings-changed"));
 }
 

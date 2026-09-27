@@ -96,7 +96,7 @@ function NewBill() {
     const bills = loadBills();
     const countMap = new Map<string, number>();
     for (const b of bills) {
-      for (const it of b.items) {
+      for (const it of (b.items || [])) {
         countMap.set(it.name, (countMap.get(it.name) || 0) + it.qty);
       }
     }
@@ -434,7 +434,7 @@ function NewBill() {
         {settings.tablesEnabled && (
           <div className="pt-2 border-t border-border flex items-center gap-2 overflow-x-auto scrollbar-none">
             <span className="text-xs font-bold text-muted-foreground shrink-0">Table:</span>
-            {settings.tableNames.map((t) => (
+            {(settings.tableNames || []).map((t) => (
               <button
                 key={t}
                 onClick={() => setTableName(t)}

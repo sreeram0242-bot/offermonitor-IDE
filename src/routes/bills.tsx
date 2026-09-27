@@ -80,7 +80,7 @@ function Bills() {
           (b.tokenNumber && String(b.tokenNumber).includes(q));
         const nameMatch = b.name?.toLowerCase().includes(q);
         const phoneMatch = b.phone?.includes(q);
-        const itemMatch = b.items.some((it) => it.name.toLowerCase().includes(q));
+        const itemMatch = Array.isArray(b.items) && b.items.some((it) => (it.name || '').toLowerCase().includes(q));
         return orderMatch || nameMatch || phoneMatch || itemMatch;
       });
     }

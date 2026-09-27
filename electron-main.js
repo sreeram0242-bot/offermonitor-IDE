@@ -7,6 +7,20 @@ import { fileURLToPath } from "url";
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
+// Configure isolated clean user data directory in AppData to prevent disk cache permission errors
+const customUserData = path.join(app.getPath("appData"), "C-Billing-POS");
+try {
+  if (!fs.existsSync(customUserData)) {
+    fs.mkdirSync(customUserData, { recursive: true });
+  }
+  app.setPath("userData", customUserData);
+} catch (e) {
+  console.warn("Could not set custom userData directory:", e);
+}
+
+// Disable GPU disk cache shader conflict on Windows
+app.commandLine.appendSwitch("disable-gpu-shader-disk-cache");
+
 let mainWindow = null;
 let staticServer = null;
 
@@ -26,9 +40,6 @@ const MIME_TYPES = {
   ".ttf": "font/ttf",
 };
 
-/**
- * Start a lightweight zero-dependency local static HTTP server for SPA
- */
 function startStaticServer(distDir) {
   return new Promise((resolve, reject) => {
     staticServer = http.createServer((req, res) => {
@@ -66,7 +77,6 @@ function startStaticServer(distDir) {
       }
     });
 
-    // Listen on dynamic available port on localhost
     staticServer.listen(0, "127.0.0.1", () => {
       const port = staticServer.address().port;
       resolve(port);
@@ -78,13 +88,26 @@ function startStaticServer(distDir) {
   });
 }
 
+// Single instance lock
+const gotTheLock = app.requestSingleInstanceLock();
+if (!gotTheLock) {
+  app.quit();
+} else {
+  app.on("second-instance", () => {
+    if (mainWindow) {
+      if (mainWindow.isMinimized()) mainWindow.restore();
+      mainWindow.focus();
+    }
+  });
+}
+
 async function createWindow() {
   mainWindow = new BrowserWindow({
     width: 1280,
     height: 820,
     minWidth: 850,
     minHeight: 550,
-    title: "CD Billing POS",
+    title: "C BILLING POS",
     webPreferences: {
       nodeIntegration: false,
       contextIsolation: true,
@@ -92,7 +115,19 @@ async function createWindow() {
     autoHideMenuBar: true,
   });
 
-  // Determine web assets directory
+  // Enable F12 DevTools shortcut for easy debugging
+  mainWindow.webContents.on("before-input-event", (event, input) => {
+    if (input.key === "F12" || (input.control && input.shift && input.key.toUpperCase() === "I")) {
+      mainWindow.webContents.toggleDevTools();
+      event.preventDefault();
+    }
+  });
+
+  // Log renderer console messages
+  mainWindow.webContents.on("console-message", (event, level, message, line, sourceId) => {
+    console.log(`[RENDERER] ${message} (${sourceId}:${line})`);
+  });
+
   let distDir = path.join(__dirname, "dist-capacitor");
   if (!fs.existsSync(distDir)) {
     distDir = path.join(__dirname, ".output/public");
@@ -103,7 +138,6 @@ async function createWindow() {
     await mainWindow.loadURL(`http://127.0.0.1:${port}`);
   } catch (err) {
     console.error("Failed to start embedded web server:", err);
-    // Fallback load file directly
     mainWindow.loadFile(path.join(distDir, "index.html"));
   }
 }

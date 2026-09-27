@@ -19,8 +19,8 @@ function CustomersPage() {
 
   const filtered = customers.filter(
     (c) =>
-      c.name.toLowerCase().includes(query.toLowerCase()) ||
-      c.phone.includes(query)
+      (c.name || '').toLowerCase().includes((query || '').toLowerCase()) ||
+      (c.phone || '').includes(query || '')
   );
 
   return (

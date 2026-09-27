@@ -38,3 +38,7 @@ CD BILLING-win-x64/
 *.exe
 CD BILLING.apk
 build-electron/
+C BILLING-win-x64/
+C BILLING.apk
+APPLICATIONS/
+Launch *.bat

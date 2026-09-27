@@ -624,7 +624,7 @@ function SettingsPage() {
           <div className="rounded-xl border border-primary/10 bg-secondary/50 p-4 space-y-3">
             <span className="text-xs font-bold text-foreground">Configured Tables:</span>
             <div className="flex flex-wrap gap-2">
-              {settings.tableNames.map((t) => (
+              {(settings.tableNames || []).map((t) => (
                 <span
                   key={t}
                   className="inline-flex items-center gap-1.5 rounded-lg border border-border bg-card px-2.5 py-1 text-xs font-bold text-foreground shadow-xs"
@@ -635,7 +635,7 @@ function SettingsPage() {
                     onClick={() =>
                       setSettings({
                         ...settings,
-                        tableNames: settings.tableNames.filter((name) => name !== t),
+                        tableNames: (settings.tableNames || []).filter((name) => name !== t),
                       })
                     }
                     className="text-muted-foreground hover:text-destructive"
@@ -654,7 +654,7 @@ function SettingsPage() {
                 onKeyDown={(e) => {
                   if (e.key === "Enter" && newTable.trim()) {
                     e.preventDefault();
-                    setSettings({ ...settings, tableNames: [...settings.tableNames, newTable.trim()] });
+                    setSettings({ ...settings, tableNames: [...(settings.tableNames || []), newTable.trim()] });
                     setNewTable("");
                   }
                 }}
@@ -663,7 +663,7 @@ function SettingsPage() {
                 type="button"
                 onClick={() => {
                   if (newTable.trim()) {
-                    setSettings({ ...settings, tableNames: [...settings.tableNames, newTable.trim()] });
+                    setSettings({ ...settings, tableNames: [...(settings.tableNames || []), newTable.trim()] });
                     setNewTable("");
                   }
                 }}

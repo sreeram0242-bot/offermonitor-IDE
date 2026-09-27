@@ -31,30 +31,52 @@ function NotFoundComponent() {
 }
 
 function ErrorComponent({ error, reset }: { error: Error; reset: () => void }) {
-  console.error(error);
+  console.error("APP_ERROR_BOUNDARY:", error);
   const router = useRouter();
-  useEffect(() => {
-    reportLovableError(error, { boundary: "tanstack_root_error_component" });
-  }, [error]);
+
+  function handleClearCorruptedCache() {
+    try {
+      localStorage.removeItem("ek_settings_v1");
+      localStorage.removeItem("ek_categories_v1");
+      // Keep bills safe!
+      window.location.href = "/";
+    } catch {
+      window.location.reload();
+    }
+  }
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-background px-4">
-      <div className="max-w-md text-center">
-        <h1 className="font-display text-3xl text-foreground">This page didn't load</h1>
-        <p className="mt-2 text-sm text-muted-foreground">Something went wrong.</p>
-        <div className="mt-6 flex flex-wrap justify-center gap-2">
+    <div className="flex min-h-screen items-center justify-center bg-background px-4 py-8">
+      <div className="max-w-lg w-full rounded-2xl border-2 border-primary/20 bg-card p-6 md:p-8 text-center shadow-2xl">
+        <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-destructive/10 text-destructive mb-4">
+          <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+          </svg>
+        </div>
+        <h1 className="font-display text-2xl md:text-3xl text-foreground font-bold">POS Loaded with an Issue</h1>
+        <p className="mt-2 text-xs md:text-sm text-muted-foreground">
+          {error?.message || "An unexpected state was encountered. Click Try Again to recover."}
+        </p>
+
+        <div className="mt-6 flex flex-wrap justify-center gap-2.5">
           <button
             onClick={() => {
               router.invalidate();
               reset();
             }}
-            className="btn-primary"
+            className="btn-primary py-2 px-5 text-sm font-bold shadow-md"
           >
-            Try again
+            Try Again
           </button>
-          <a href="/" className="btn-ghost">
-            Go home
+          <a href="/" className="btn-ghost py-2 px-4 text-sm font-semibold">
+            Go Home
           </a>
+          <button
+            onClick={handleClearCorruptedCache}
+            className="btn-secondary py-2 px-4 text-xs font-semibold text-destructive hover:bg-destructive hover:text-white transition-colors"
+          >
+            Reset Cache & Reload
+          </button>
         </div>
       </div>
     </div>
