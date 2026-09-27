@@ -68,7 +68,7 @@ function SettingsPage() {
   // Check Baileys status on mount and periodically if waiting for QR
   const checkStatus = async (url?: string) => {
     setIsCheckingStatus(true);
-    const serverUrl = url || settings.whatsappServerUrl || "http://localhost:3001";
+    const serverUrl = url || settings.whatsappServerUrl || "https://cd-billing-baileys.onrender.com";
     const status = await fetchBaileysStatus(serverUrl);
     setBaileysStatus(status);
     setIsCheckingStatus(false);
@@ -95,7 +95,7 @@ function SettingsPage() {
     if (!confirm("Are you sure you want to disconnect WhatsApp session? You will need to scan QR code again.")) {
       return;
     }
-    const ok = await disconnectBaileys(settings.whatsappServerUrl || "http://localhost:3001");
+    const ok = await disconnectBaileys(settings.whatsappServerUrl || "https://cd-billing-baileys.onrender.com");
     if (ok) {
       toast.success("Disconnected. Generating new QR code...");
       setTimeout(() => checkStatus(), 1500);
@@ -113,7 +113,7 @@ function SettingsPage() {
     setIsSendingTest(true);
     const renderedMsg = renderWhatsAppBill(SAMPLE_BILL_FOR_PREVIEW, settings);
     const res = await sendBaileysInvoice(
-      settings.whatsappServerUrl || "http://localhost:3001",
+      settings.whatsappServerUrl || "https://cd-billing-baileys.onrender.com",
       testPhone,
       renderedMsg
     );
@@ -292,7 +292,7 @@ function SettingsPage() {
             <div className="flex gap-2">
               <input
                 className="input-field py-1.5 text-sm font-mono flex-1"
-                placeholder="http://localhost:3001"
+                placeholder="https://cd-billing-baileys.onrender.com"
                 value={settings.whatsappServerUrl || ""}
                 onChange={(e) => setSettings({ ...settings, whatsappServerUrl: e.target.value })}
               />
@@ -307,7 +307,7 @@ function SettingsPage() {
               </button>
             </div>
             <p className="text-[11px] text-muted-foreground mt-1">
-              Default is <code className="text-primary font-mono">http://localhost:3001</code>. Start gateway with <code className="text-primary font-mono">npm run baileys:server</code>.
+              Default is <code className="text-primary font-mono">https://cd-billing-baileys.onrender.com</code>. Start gateway with <code className="text-primary font-mono">npm run baileys:server</code>.
             </p>
           </div>
 

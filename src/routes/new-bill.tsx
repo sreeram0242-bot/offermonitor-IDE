@@ -274,7 +274,7 @@ function NewBill() {
 
       if (settings.autoWhatsAppBaileys) {
         // Option A: Background Baileys send if server is configured
-        sendBaileysInvoice(settings.whatsappServerUrl || "http://localhost:3001", newBill.phone, renderedMsg)
+        sendBaileysInvoice(settings.whatsappServerUrl || "https://cd-billing-baileys.onrender.com", newBill.phone, renderedMsg)
           .then((res) => {
             if (res.success) {
               toast.success(`WhatsApp invoice sent in background to ${newBill.phone}!`);

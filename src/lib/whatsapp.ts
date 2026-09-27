@@ -164,7 +164,7 @@ export type BaileysStatus = {
  * Check the connection status of the Baileys Gateway Server
  */
 export async function fetchBaileysStatus(serverUrl: string): Promise<BaileysStatus> {
-  const url = (serverUrl || "http://localhost:3001").replace(/\/$/, "");
+  const url = (serverUrl || "https://cd-billing-baileys.onrender.com").replace(/\/$/, "");
   try {
     const controller = new AbortController();
     const timeout = setTimeout(() => controller.abort(), 4000);
@@ -216,7 +216,7 @@ export async function sendBaileysInvoice(
     return { success: false, error: "Invalid phone number." };
   }
 
-  const url = (serverUrl || "http://localhost:3001").replace(/\/$/, "");
+  const url = (serverUrl || "https://cd-billing-baileys.onrender.com").replace(/\/$/, "");
 
   try {
     const controller = new AbortController();
@@ -260,7 +260,7 @@ export async function sendBaileysInvoice(
  * Request Baileys gateway to disconnect / unlink session
  */
 export async function disconnectBaileys(serverUrl: string): Promise<boolean> {
-  const url = (serverUrl || "http://localhost:3001").replace(/\/$/, "");
+  const url = (serverUrl || "https://cd-billing-baileys.onrender.com").replace(/\/$/, "");
   try {
     const res = await fetch(`${url}/disconnect`, { method: "POST" });
     const data = await res.json();

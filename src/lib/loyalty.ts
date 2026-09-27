@@ -442,7 +442,7 @@ export const DEFAULT_SETTINGS: AppSettings = {
   autoOpenWhatsApp: true, // Default ON: Automatically triggers WhatsApp on the phone! Zero server needed!
   whatsappBillTemplate: "",
   autoWhatsAppBaileys: false,
-  whatsappServerUrl: "http://localhost:3001",
+  whatsappServerUrl: "https://cd-billing-baileys.onrender.com",
 };
 
 const SETTINGS_KEY = "ek_settings_v1";

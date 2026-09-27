@@ -52,7 +52,7 @@ export function ReceiptModal({ isOpen, onClose, bill, onNextOrder }: ReceiptModa
     if (settings.autoWhatsAppBaileys) {
       toast.info("Sending invoice via Baileys in background...");
       const res = await sendBaileysInvoice(
-        settings.whatsappServerUrl || "http://localhost:3001",
+        settings.whatsappServerUrl || "https://cd-billing-baileys.onrender.com",
         targetPhone,
         msg
       );
