@@ -4,10 +4,10 @@ services:
     runtime: node
     plan: free
     region: singapore
-    buildCommand: cd server && npm install
-    startCommand: node server/baileys-server.mjs
+    branch: main
+    rootDir: server
+    buildCommand: npm install
+    startCommand: node baileys-server.mjs
     envVars:
       - key: PORT
-        value: 3001
-      - key: NODE_VERSION
-        value: 20
+        value: 10000
